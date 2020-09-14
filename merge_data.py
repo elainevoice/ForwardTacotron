@@ -47,11 +47,13 @@ if __name__ == '__main__':
         try:
             shutil.copy(paths_de.mel/f'{item_id}.npy', paths_merged.mel/f'{item_id}.npy')
             shutil.copy(paths_de.alg/f'{item_id}.npy', paths_merged.alg/f'{item_id}.npy')
+            shutil.copy(paths_de.semb/f'{item_id}.npy', paths_merged.semb/f'{item_id}.npy')
         except Exception as e:
             print(e)
     for item_id, _ in data_en['train_data'] + data_en['val_data']:
         try:
             shutil.copy(paths_en.mel/f'{item_id}.npy', paths_merged.mel/f'{item_id}.npy')
             shutil.copy(paths_en.alg/f'{item_id}.npy', paths_merged.alg/f'{item_id}.npy')
+            shutil.copy(paths_en.semb/f'{item_id}.npy', paths_merged.semb/f'{item_id}.npy')
         except Exception as e:
             print(e)
