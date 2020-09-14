@@ -20,6 +20,7 @@ from utils.dsp import reconstruct_waveform, np_now
 from utils.files import unpickle_binary
 from utils.paths import Paths
 from utils.text import clean_text, text_to_sequence
+from utils.text.cleaners import basic_cleaners
 
 
 class ForwardTrainer:
@@ -194,4 +195,24 @@ class ForwardTrainer:
                 global_step=model.step, sample_rate=hp.sample_rate)
             self.writer.add_audio(
                 tag=f'Generated_{idx}_SID_{target_sid}/postnet_wav', snd_tensor=m2_hat_wav,
+                global_step=model.step, sample_rate=hp.sample_rate)
+
+            text = basic_cleaners('Eine gute Idee kann die Welt verändern.')
+            inputs = text_to_sequence(text)
+            m1_hat, m2_hat, att = model.generate(inputs, gen_semb)
+            m1_hat_fig = plot_mel(m1_hat)
+            m2_hat_fig = plot_mel(m2_hat)
+            m_target_fig = plot_mel(m_target)
+
+            self.writer.add_figure(f'Generated_DE_{idx}_SID_{target_sid}/target', m_target_fig, model.step)
+            self.writer.add_figure(f'Generated_DE_{idx}_SID_{target_sid}/linear', m1_hat_fig, model.step)
+            self.writer.add_figure(f'Generated_DE_{idx}_SID_{target_sid}/postnet', m2_hat_fig, model.step)
+
+            m2_hat_wav = reconstruct_waveform(m2_hat)
+
+            self.writer.add_audio(
+                tag=f'Generated_DE_{idx}_SID_{target_sid}/target_wav', snd_tensor=target_wav,
+                global_step=model.step, sample_rate=hp.sample_rate)
+            self.writer.add_audio(
+                tag=f'Generated_DE_{idx}_SID_{target_sid}/postnet_wav', snd_tensor=m2_hat_wav,
                 global_step=model.step, sample_rate=hp.sample_rate)
