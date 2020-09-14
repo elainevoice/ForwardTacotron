@@ -41,6 +41,7 @@ if __name__ == '__main__':
     pickle_binary(text_dict, paths_merged.data / 'text_dict.pkl')
     pickle_binary(speaker_dict, paths_merged.data / 'speaker_dict.pkl')
     pickle_binary(speaker_token_dict, paths_merged.data / 'speaker_token_dict.pkl')
+    pickle_binary(speaker_emb_dict, paths_merged.data / 'speaker_emb_dict.pkl')
 
     for item_id, _ in data_de['train_data'] + data_de['val_data']:
         try:
