@@ -40,8 +40,14 @@ if __name__ == '__main__':
     pickle_binary(speaker_token_dict, paths_merged.data / 'speaker_token_dict.pkl')
 
     for item_id, _ in data_de['train_data'] + data_de['val_data']:
-        shutil.copy(paths_de.mel/f'{item_id}.npy', paths_merged.mel/f'{item_id}.npy')
-        shutil.copy(paths_de.alg/f'{item_id}.npy', paths_merged.alg/f'{item_id}.npy')
+        try:
+            shutil.copy(paths_de.mel/f'{item_id}.npy', paths_merged.mel/f'{item_id}.npy')
+            shutil.copy(paths_de.alg/f'{item_id}.npy', paths_merged.alg/f'{item_id}.npy')
+        except Exception as e:
+            print(e)
     for item_id, _ in data_en['train_data'] + data_en['val_data']:
-        shutil.copy(paths_en.mel/f'{item_id}.npy', paths_merged.mel/f'{item_id}.npy')
-        shutil.copy(paths_en.alg/f'{item_id}.npy', paths_merged.alg/f'{item_id}.npy')
+        try:
+            shutil.copy(paths_en.mel/f'{item_id}.npy', paths_merged.mel/f'{item_id}.npy')
+            shutil.copy(paths_en.alg/f'{item_id}.npy', paths_merged.alg/f'{item_id}.npy')
+        except Exception as e:
+            print(e)
