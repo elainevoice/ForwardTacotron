@@ -69,8 +69,8 @@ def convert_to_ascii(text):
   return unidecode(text)
 
 
-def basic_cleaners(text):
-  text = to_phonemes(text)
+def german_cleaners(text):
+  text = to_phonemes(text, language='de')
   text = collapse_whitespace(text)
   return text
 
@@ -85,10 +85,12 @@ def english_cleaners(text):
   return text
 
 
-def to_phonemes(text):
+def to_phonemes(text, language=None):
     text = text.replace('-', '—')
+    if language is None:
+        language = hp.language
     phonemes = phonemize(text,
-                         language=hp.language,
+                         language=language,
                          backend='espeak',
                          strip=True,
                          preserve_punctuation=True,

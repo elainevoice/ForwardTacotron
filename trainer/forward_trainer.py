@@ -20,7 +20,7 @@ from utils.dsp import reconstruct_waveform, np_now
 from utils.files import unpickle_binary
 from utils.paths import Paths
 from utils.text import clean_text, text_to_sequence
-from utils.text.cleaners import basic_cleaners
+from utils.text.cleaners import german_cleaners
 
 
 class ForwardTrainer:
@@ -197,7 +197,7 @@ class ForwardTrainer:
                 tag=f'Generated_{idx}_SID_{target_sid}/postnet_wav', snd_tensor=m2_hat_wav,
                 global_step=model.step, sample_rate=hp.sample_rate)
 
-            text = basic_cleaners('Eine gute Idee kann die Welt verändern.')
+            text = german_cleaners('Eine gute Idee kann die Welt verändern.')
             inputs = text_to_sequence(text)
             m1_hat, m2_hat, att = model.generate(inputs, gen_semb)
             m1_hat_fig = plot_mel(m1_hat)
