@@ -20,7 +20,7 @@ def get_data(path):
 
 
 if __name__ == '__main__':
-    paths_en = Paths('data_en', 'dummy', 'dummy')
+    paths_en = Paths('../ForwardTacotron3/data', 'dummy', 'dummy')
     paths_de = Paths('data_de', 'dummy', 'dummy')
     paths_merged = Paths('data_en_de', 'dummy', 'dummy')
 
