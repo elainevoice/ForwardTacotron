@@ -8,12 +8,14 @@ def get_data(path):
     text_dict = unpickle_binary(path / 'text_dict.pkl')
     speaker_dict = unpickle_binary(path / 'speaker_dict.pkl')
     speaker_token_dict = unpickle_binary(path / 'speaker_token_dict.pkl')
+    speaker_emb_dict = unpickle_binary(path / 'speaker_emb_dict.pkl')
     return {
         'train_data': train_data,
         'val_data': val_data,
         'text_dict': text_dict,
         'speaker_dict': speaker_dict,
-        'speaker_token_dict': speaker_token_dict
+        'speaker_token_dict': speaker_token_dict,
+        'speaker_emb_dict': speaker_emb_dict
     }
 
 
@@ -29,12 +31,13 @@ if __name__ == '__main__':
     val_data = data_de['val_data'] + data_en['val_data']
     text_dict = {**data_de['text_dict'], **data_en['text_dict']}
     speaker_dict = {**data_de['speaker_dict'], **data_en['speaker_dict']}
+    speaker_emb_dict = {**data_de['speaker_emb_dict'], **data_en['speaker_emb_dict']}
     speakers = sorted(list(set(speaker_dict.values())))
     speaker_token_dict = {sp_id: i for i, sp_id in enumerate(speakers)}
     print(speaker_token_dict)
 
-    pickle_binary(train_data, paths_merged.data / 'train_data.pkl')
-    pickle_binary(val_data, paths_merged.data / 'val_data.pkl')
+    pickle_binary(train_data, paths_merged.data / 'train_dataset.pkl')
+    pickle_binary(val_data, paths_merged.data / 'val_dataset.pkl')
     pickle_binary(text_dict, paths_merged.data / 'text_dict.pkl')
     pickle_binary(speaker_dict, paths_merged.data / 'speaker_dict.pkl')
     pickle_binary(speaker_token_dict, paths_merged.data / 'speaker_token_dict.pkl')
