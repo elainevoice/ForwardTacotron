@@ -79,7 +79,8 @@ if __name__ == '__main__':
                             highways=hp.forward_num_highways,
                             dropout=hp.forward_dropout,
                             n_mels=hp.num_mels,
-                            speaker_emb_dim=hp.forward_speaker_emb_dim).to(device)
+                            speaker_emb_dim=hp.forward_speaker_emb_dim,
+                            max_num_speakers=hp.max_num_speakers).to(device)
 
     model_parameters = filter(lambda p: p.requires_grad, model.parameters())
     params = sum([np.prod(p.size()) for p in model_parameters])
