@@ -3,7 +3,7 @@ import torch.nn.functional as F
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 from typing import Tuple
-
+import matplotlib.pyplot as plt
 import torch
 from torch.optim.optimizer import Optimizer
 from torch.utils.data.dataset import Dataset
@@ -65,7 +65,7 @@ class ForwardTrainer:
                 model.train()
                 x, m, dur, lens, s_id, semb = x.to(device), m.to(device), dur.to(device), m_lens.to(device), s_id.to(device), semb.to(device)
 
-                m1_hat, m2_hat, dur_hat = model(x, m, dur, semb)
+                m1_hat, m2_hat, dur_hat = model(x, m, dur, s_id)
 
                 m1_loss = self.l1_loss(m1_hat, m, lens)
                 m2_loss = self.l1_loss(m2_hat, m, lens)
@@ -119,7 +119,7 @@ class ForwardTrainer:
         for i, (s_id, semb, x, m, ids, x_lens, m_lens, dur) in enumerate(val_set, 1):
             s_id, semb, x, m, dur, m_lens = s_id.to(device), semb.to(device), x.to(device), m.to(device), dur.to(device), m_lens.to(device)
             with torch.no_grad():
-                m1_hat, m2_hat, dur_hat = model(x, m, dur, semb)
+                m1_hat, m2_hat, dur_hat = model(x, m, dur, s_id)
                 m1_loss = self.l1_loss(m1_hat, m, m_lens)
                 m2_loss = self.l1_loss(m2_hat, m, m_lens)
                 dur_loss = F.l1_loss(dur_hat, dur)
@@ -139,16 +139,29 @@ class ForwardTrainer:
         speaker_token_dict = unpickle_binary(self.paths.data / 'speaker_token_dict.pkl')
         token_speaker_dict = {v: k for k, v in speaker_token_dict.items()}
         speaker_ids = sorted(list(speaker_emb_dict.keys()))[:20]
-        embeddings = [speaker_emb_dict[s_id] for s_id in speaker_ids]
+        speaker_tokens = [speaker_token_dict[s] for s in speaker_ids]
+        speaker_tokens = torch.tensor(speaker_tokens).long().to(device)
+
+        # dur embeddings
+        dur_embeddings = model.dur_speaker_embedding(speaker_tokens).detach().cpu().numpy()
+        cos_mat = cosine_similarity(dur_embeddings)
+        np.fill_diagonal(cos_mat, 0)
+        cos_mat_fig = plot_cos_matrix(cos_mat, labels=speaker_ids)
+        self.writer.add_figure('Embedding_Metrics/dur_speaker_cosine_dist', cos_mat_fig, model.step)
+        plt.close()
+
+        # embeddings
+        embeddings = model.speaker_embedding(speaker_tokens).detach().cpu().numpy()
         cos_mat = cosine_similarity(embeddings)
         np.fill_diagonal(cos_mat, 0)
         cos_mat_fig = plot_cos_matrix(cos_mat, labels=speaker_ids)
         self.writer.add_figure('Embedding_Metrics/speaker_cosine_dist', cos_mat_fig, model.step)
+        plt.close()
 
         for idx in range(len(hp.val_speaker_ids)):
             x_len = x_lens[idx]
             m_len = m_lens[idx]
-            m1_hat, m2_hat, dur_hat = model(x[idx:idx+1, :x_len], m[idx:idx+1, :, :m_len], dur[idx:idx+1], semb[idx:idx+1])
+            m1_hat, m2_hat, dur_hat = model(x[idx:idx+1, :x_len], m[idx:idx+1, :, :m_len], dur[idx:idx+1], s_id[idx:idx+1])
             m1_hat_np = np_now(m1_hat)
             m2_hat_np = np_now(m2_hat)
             gen_sid = int(s_id[idx].cpu())
@@ -179,7 +192,7 @@ class ForwardTrainer:
 
             text = clean_text('Ideas engineering is changing the world for the better.')
             inputs = text_to_sequence(text)
-            m1_hat, m2_hat, att = model.generate(inputs, gen_semb)
+            m1_hat, m2_hat, att = model.generate(inputs, gen_sid)
             m1_hat_fig = plot_mel(m1_hat)
             m2_hat_fig = plot_mel(m2_hat)
             m_target_fig = plot_mel(m_target)
@@ -199,7 +212,7 @@ class ForwardTrainer:
 
             text = german_cleaners('Eine gute Idee kann die Welt verändern.')
             inputs = text_to_sequence(text)
-            m1_hat, m2_hat, att = model.generate(inputs, gen_semb)
+            m1_hat, m2_hat, att = model.generate(inputs, gen_sid)
             m1_hat_fig = plot_mel(m1_hat)
             m2_hat_fig = plot_mel(m2_hat)
             m_target_fig = plot_mel(m_target)
