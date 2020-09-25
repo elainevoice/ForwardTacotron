@@ -84,6 +84,13 @@ for num_id, id in enumerate(text_dict):
                     col_ind.append(bottom_node)
                     data.append(weight_bottom)
 
+                if i < rows -1 and j < cols:
+                    bottom_node = to_node_index(i + 1, j + 1, cols)
+                    weight_bottom = mat[i + 1, j + 1]
+                    row_ind.append(node)
+                    col_ind.append(bottom_node)
+                    data.append(weight_bottom)
+
         #print(f'max row_ind {max(row_ind)} max col_ind {max(col_ind)} dim {ro}')
         adj_mat = coo_matrix((data, (row_ind, col_ind)), shape=(rows * cols, rows * cols))
         return adj_mat.tocsr()
@@ -113,22 +120,6 @@ for num_id, id in enumerate(text_dict):
 
     for j in mel_text.values():
         durations[j] += 1
-
-    # correct for missing durs
-    for i in range(len(durations)):
-        if durations[i] == 0:
-            left_dur = 0
-            right_dur = 0
-            if i > 0: left_dur = durations[i-1]
-            if i < len(durations) - 1: right_dur = durations[i+1]
-            if left_dur > right_dur and left_dur > 1:
-                durations[i] += 1
-                durations[i - 1] -= 1
-            if right_dur > left_dur and right_dur > 1:
-                durations[i] += 1
-                durations[i + 1] -= 1
-
-
 
     print(text)
     print(durations)
