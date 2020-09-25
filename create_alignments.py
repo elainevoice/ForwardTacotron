@@ -27,7 +27,7 @@ mel = torch.tensor(mel)
 seq = text_to_sequence(text)
 seq = torch.tensor(seq)
 pred = model(mel.unsqueeze(0).transpose(1, 2))
-#pred = torch.softmax(pred, dim=-1)
+pred = torch.softmax(pred, dim=-1)
 pred = pred.detach()[0].numpy()
 target = seq.numpy()
 
