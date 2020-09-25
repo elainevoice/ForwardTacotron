@@ -73,7 +73,7 @@ def to_adj_matrix(mat):
                 col_ind.append(bottom_node)
                 data.append(weight_bottom)
 
-            if i < rows -1 and j < cols:
+            if i < rows -1 and j < cols-1:
                 bottom_node = to_node_index(i + 1, j + 1, cols)
                 weight_bottom = mat[i + 1, j + 1]
                 row_ind.append(node)
