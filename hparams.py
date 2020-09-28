@@ -90,8 +90,8 @@ tts_lstm_dims = 512
 tts_postnet_K = 8
 tts_num_highways = 4
 tts_dropout = 0.5
-language = 'en'
-tts_cleaner_name = 'english_cleaners'
+language = 'de'
+tts_cleaner_name = 'basic_cleaners'
 tts_stop_threshold = -10           # Value below which audio generation ends.
                                     # For example, for a range of [-4, 4], this
                                     # will terminate the sequence at the first

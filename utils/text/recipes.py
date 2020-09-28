@@ -12,13 +12,15 @@ def ljspeech(path: Union[str, Path]):
     assert len(csv_file) == 1
 
     text_dict = {}
+    speaker_dict = {}
 
     with open(csv_file[0], encoding='utf-8') as f :
         for line in f :
             split = line.split('|')
-            text_dict[split[0]] = split[-1]
+            text_dict[split[0]] = split[1]
+            speaker_dict[split[0]] = 'karlsson'
 
-    return text_dict
+    return text_dict, speaker_dict
 
 
 def vctk(path: Union[str, Path], n_workers, extension='.txt') -> Tuple[dict, dict]:

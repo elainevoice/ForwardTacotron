@@ -13,7 +13,7 @@ from utils.dsp import *
 from utils.files import get_files, pickle_binary
 from utils.paths import Paths
 from utils.text import clean_text
-from utils.text.recipes import libri_tts
+from utils.text.recipes import libri_tts, ljspeech
 
 
 # Helper functions for argument types
@@ -104,7 +104,7 @@ if __name__ == '__main__':
             ('Num Validation', hp.n_val)
         ])
         print('Creating dict...')
-        text_dict, speaker_dict = libri_tts(path, n_workers=n_workers)
+        text_dict, speaker_dict = ljspeech(path)
 
         speakers = sorted(list(set(speaker_dict.values())))
         speaker_token_dict = {sp_id: i for i, sp_id in enumerate(speakers)}
