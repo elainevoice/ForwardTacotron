@@ -7,8 +7,8 @@ data_path = 'data/'
 
 # model ids are separate - that way you can use a new tts with an old wavernn and vice versa
 # NB: expect undefined behaviour if models were trained on different DSP settings
-voc_model_id = 'resemblyzer_asvoice_trim_raw'
-tts_model_id = 'resemblyzer_asvoice_trim_tts'
+voc_model_id = 'asvoice_karlsson_raw'
+tts_model_id = 'asvoice_karlsson_tts'
 
 # set this to True if you are only interested in WaveRNN
 ignore_tts = False
@@ -17,8 +17,8 @@ ignore_tts = False
 # DSP --------------------------------------------------------------------------------------------------------------#
 
 # Settings for all models
-sample_rate = 22050
-n_fft = 2048
+sample_rate = 16000
+n_fft = 1024
 fft_bins = n_fft // 2 + 1
 num_mels = 80
 hop_length = 256                    # 12.5ms - in line with Tacotron 2 paper
