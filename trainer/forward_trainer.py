@@ -53,6 +53,7 @@ class ForwardTrainer:
         m_loss_avg = Averager()
         dur_loss_avg = Averager()
         duration_avg = Averager()
+        pitch_loss_avg = Averager()
         device = next(model.parameters()).device  # use same device as model parameters
         for e in range(1, epochs + 1):
             for i, (x, m, ids, lens, dur, pitch) in enumerate(session.train_set, 1):
@@ -68,6 +69,7 @@ class ForwardTrainer:
 
                 dur_loss = F.l1_loss(dur_hat, dur)
                 pitch_loss = F.l1_loss(pitch_hat.squeeze(), pitch)
+                pitch_loss_avg.add(pitch_loss.item())
 
                 loss = m1_loss + m2_loss + dur_loss
                 optimizer.zero_grad()
@@ -82,7 +84,8 @@ class ForwardTrainer:
                 duration_avg.add(time.time() - start)
                 speed = 1. / duration_avg.get()
                 msg = f'| Epoch: {e}/{epochs} ({i}/{total_iters}) | Mel Loss: {m_loss_avg.get():#.4} ' \
-                      f'| Dur Loss: {dur_loss_avg.get():#.4} | {speed:#.2} steps/s | Step: {k}k | '
+                      f'| Dur Loss: {dur_loss_avg.get():#.4} | Pitch Loss: {pitch_loss_avg.get():#.4} ' \
+                      f'| {speed:#.2} steps/s | Step: {k}k | '
 
                 if step % hp.forward_checkpoint_every == 0:
                     ckpt_name = f'forward_step{k}K'
