@@ -55,11 +55,13 @@ class ForwardTrainer:
         duration_avg = Averager()
         device = next(model.parameters()).device  # use same device as model parameters
         for e in range(1, epochs + 1):
-            for i, (x, m, ids, lens, dur) in enumerate(session.train_set, 1):
+            for i, (x, m, ids, lens, dur, pitch) in enumerate(session.train_set, 1):
 
                 start = time.time()
                 model.train()
-                x, m, dur, lens = x.to(device), m.to(device), dur.to(device), lens.to(device)
+                x, m, dur, lens, pitch = x.to(device), m.to(device), dur.to(device), lens.to(device), pitch.to(device)
+
+                print(pitch)
 
                 m1_hat, m2_hat, dur_hat = model(x, m, dur, lens)
 
@@ -112,7 +114,7 @@ class ForwardTrainer:
         m_val_loss = 0
         dur_val_loss = 0
         device = next(model.parameters()).device
-        for i, (x, m, ids, lens, dur) in enumerate(val_set, 1):
+        for i, (x, m, ids, lens, dur, pitch) in enumerate(val_set, 1):
             x, m, dur, lens = x.to(device), m.to(device), dur.to(device), lens.to(device)
             with torch.no_grad():
                 m1_hat, m2_hat, dur_hat = model(x, m, dur, lens)

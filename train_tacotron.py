@@ -79,6 +79,8 @@ def create_align_features(model: Tacotron,
     pickle_binary(att_score_dict, paths.data / 'att_score_dict.pkl')
 
 
+
+
 if __name__ == '__main__':
     # Parse Arguments
     parser = argparse.ArgumentParser(description='Train Tacotron TTS')

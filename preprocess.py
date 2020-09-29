@@ -2,7 +2,7 @@ import argparse
 from multiprocessing import Pool, cpu_count
 from pathlib import Path
 from random import Random
-
+import parselmouth
 from typing import Tuple, Dict
 
 from utils.display import *
@@ -29,27 +29,30 @@ class Preprocessor:
 
     def __call__(self, path: Path) -> Tuple[str, int, str]:
         wav_id = path.stem
-        m, x = self._convert_file(path)
+        m, x, raw_pitch = self._convert_file(path)
         np.save(self.paths.mel/f'{wav_id}.npy', m, allow_pickle=False)
         np.save(self.paths.quant/f'{wav_id}.npy', x, allow_pickle=False)
+        np.save(self.paths.raw_pitch/f'{wav_id}.npy', raw_pitch, allow_pickle=False)
         text = self.text_dict[wav_id]
         text = clean_text(text)
         return wav_id, m.shape[-1], text
 
-    def _convert_file(self, path: Path) -> Tuple[np.array, np.array]:
+    def _convert_file(self, path: Path) -> Tuple[np.array, np.array, np.array]:
         y = load_wav(path)
         peak = np.abs(y).max()
         if hp.peak_norm or peak > 1.0:
             y /= peak
         mel = melspectrogram(y)
+        snd = parselmouth.Sound(y, sampling_frequency=hp.sample_rate)
+        # TODO this only seems to work for sr=22050, make flexible
+        pitch = snd.to_pitch(time_step=snd.duration / (mel.shape[1] + 3)).selected_array['frequency']
         if hp.voc_mode == 'RAW':
             quant = encode_mu_law(y, mu=2**hp.bits) if hp.mu_law else float_2_label(y, bits=hp.bits)
         elif hp.voc_mode == 'MOL':
             quant = float_2_label(y, bits=16)
         else:
             raise ValueError(f'Unexpected voc mode {hp.voc_mode}, should be either RAW or MOL.')
-
-        return mel.astype(np.float32), quant.astype(np.int64)
+        return mel.astype(np.float32), quant.astype(np.int64), pitch.astype(np.float32)
 
 
 parser = argparse.ArgumentParser(description='Preprocessing for WaveRNN and Tacotron')

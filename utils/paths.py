@@ -13,6 +13,8 @@ class Paths:
         self.mel = self.data/'mel'
         self.gta = self.data/'gta'
         self.alg = self.data/'alg'
+        self.raw_pitch = self.data/'raw_pitch'
+        self.phon_pitch = self.data/'phon_pitch'
 
         # WaveRNN/Vocoder Paths
         self.voc_checkpoints = self.base/'checkpoints'/f'{voc_id}.wavernn'
@@ -51,6 +53,8 @@ class Paths:
         os.makedirs(self.mel, exist_ok=True)
         os.makedirs(self.gta, exist_ok=True)
         os.makedirs(self.alg, exist_ok=True)
+        os.makedirs(self.raw_pitch, exist_ok=True)
+        os.makedirs(self.phon_pitch, exist_ok=True)
         os.makedirs(self.voc_checkpoints, exist_ok=True)
         os.makedirs(self.voc_top_k, exist_ok=True)
         os.makedirs(self.voc_output, exist_ok=True)
