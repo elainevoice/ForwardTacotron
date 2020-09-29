@@ -71,7 +71,7 @@ class ForwardTrainer:
                 pitch_loss = F.l1_loss(pitch_hat.squeeze(), pitch)
                 pitch_loss_avg.add(pitch_loss.detach().item())
 
-                loss = m1_loss + m2_loss + dur_loss
+                loss = m1_loss + m2_loss + dur_loss + pitch_loss
                 optimizer.zero_grad()
                 loss.backward()
                 torch.nn.utils.clip_grad_norm_(model.parameters(), hp.tts_clip_grad_norm)
