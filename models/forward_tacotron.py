@@ -64,6 +64,30 @@ class DurationPredictor(nn.Module):
         return x / alpha
 
 
+class PitchPredictor(nn.Module):
+
+    def __init__(self, in_dims, conv_dims=256, rnn_dims=64, dropout=0.5):
+        super().__init__()
+        self.convs = torch.nn.ModuleList([
+            BatchNormConv(in_dims, conv_dims, 5, activation=torch.relu),
+            BatchNormConv(conv_dims, conv_dims, 5, activation=torch.relu),
+            BatchNormConv(conv_dims, conv_dims, 5, activation=torch.relu),
+        ])
+        self.rnn = nn.GRU(conv_dims, rnn_dims, batch_first=True, bidirectional=True)
+        self.lin = nn.Linear(2 * rnn_dims, 1)
+        self.dropout = dropout
+
+    def forward(self, x):
+        x = x.transpose(1, 2)
+        for conv in self.convs:
+            x = conv(x)
+            x = F.dropout(x, p=self.dropout, training=self.training)
+        x = x.transpose(1, 2)
+        x, _ = self.rnn(x)
+        x = self.lin(x)
+        return x
+
+
 class BatchNormConv(nn.Module):
 
     def __init__(self, in_channels, out_channels, kernel, activation=None):
@@ -104,6 +128,10 @@ class ForwardTacotron(nn.Module):
                                           conv_dims=durpred_conv_dims,
                                           rnn_dims=durpred_rnn_dims,
                                           dropout=durpred_dropout)
+        self.pitch_pred = PitchPredictor(embed_dims,
+                                         conv_dims=256,
+                                         rnn_dims=128,
+                                         dropout=0.5)
         self.prenet = CBHG(K=prenet_k,
                            in_channels=embed_dims,
                            channels=prenet_dims,
@@ -122,18 +150,23 @@ class ForwardTacotron(nn.Module):
                             num_highways=highways)
         self.dropout = dropout
         self.post_proj = nn.Linear(2 * postnet_dims, n_mels, bias=False)
+        self.pitch_proj = BatchNormConv(1, 2*prenet_dims, kernel=3)
 
     def forward(self, x, mel, dur, mel_lens):
         if self.training:
             self.step += 1
 
         x = self.embedding(x)
-        dur_hat = self.dur_pred(x)
-        dur_hat = dur_hat.squeeze()
+        dur_hat = self.dur_pred(x).squeeze()
+        pitch_hat = self.pitch_pred(x).transpose(1, 2)
+        pitch_hat_proj = self.pitch_proj(pitch_hat).transpose(1, 2)
 
         x = x.transpose(1, 2)
         x = self.prenet(x)
+        x += pitch_hat_proj
+
         x = self.lr(x, dur)
+
         for i in range(x.size(0)):
             x[i, mel_lens[i]:, :] = 0
         x, _ = self.lstm(x)
@@ -150,7 +183,7 @@ class ForwardTacotron(nn.Module):
 
         x_post = self.pad(x_post, mel.size(2))
         x = self.pad(x, mel.size(2))
-        return x, x_post, dur_hat
+        return x, x_post, dur_hat, pitch_hat
 
     def generate(self, x, alpha=1.0):
         self.eval()
@@ -160,9 +193,13 @@ class ForwardTacotron(nn.Module):
         x = self.embedding(x)
         dur = self.dur_pred(x, alpha=alpha)
         dur = dur.squeeze(2)
+        pitch_hat = self.pitch_pred(x).transpose(1, 2)
+        pitch_hat_proj = self.pitch_proj(pitch_hat).transpose(1, 2)
 
         x = x.transpose(1, 2)
         x = self.prenet(x)
+        x += pitch_hat_proj
+
         x = self.lr(x, dur)
         x, _ = self.lstm(x)
         x = F.dropout(x,
