@@ -123,7 +123,7 @@ class ForwardTacotron(nn.Module):
         self.dropout = dropout
         self.post_proj = nn.Linear(2 * postnet_dims, n_mels, bias=False)
 
-    def forward(self, x, mel, dur):
+    def forward(self, x, mel, dur, mel_lens):
         if self.training:
             self.step += 1
 
@@ -134,7 +134,10 @@ class ForwardTacotron(nn.Module):
         x = x.transpose(1, 2)
         x = self.prenet(x)
         x = self.lr(x, dur)
+        for i in range(x.size(0)):
+            x[i, mel_lens[i]:, :] = 0
         x, _ = self.lstm(x)
+
         x = F.dropout(x,
                       p=self.dropout,
                       training=self.training)
