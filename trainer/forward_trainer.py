@@ -69,7 +69,7 @@ class ForwardTrainer:
 
                 dur_loss = F.l1_loss(dur_hat, dur)
                 pitch_loss = F.l1_loss(pitch_hat.squeeze(), pitch)
-                pitch_loss_avg.add(pitch_loss.item())
+                pitch_loss_avg.add(pitch_loss.detach().item())
 
                 loss = m1_loss + m2_loss + dur_loss
                 optimizer.zero_grad()
@@ -111,6 +111,7 @@ class ForwardTrainer:
 
             m_loss_avg.reset()
             duration_avg.reset()
+            pitch_loss_avg.reset()
             print(' ')
 
     def evaluate(self, model: ForwardTacotron, val_set: Dataset) -> Tuple[float, float,float]:
