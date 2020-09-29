@@ -139,7 +139,7 @@ class ForwardTrainer:
         model.eval()
         device = next(model.parameters()).device
         x, m, ids, lens, dur, pitch = session.val_sample
-        x, m, dur = x.to(device), m.to(device), dur.to(device)
+        x, m, dur, pitch = x.to(device), m.to(device), dur.to(device), pitch.to(device)
 
         m1_hat, m2_hat, dur_hat, pitch_hat = model(x, m, dur, lens, pitch)
         m1_hat = np_now(m1_hat)[0, :600, :]
