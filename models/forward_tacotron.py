@@ -152,14 +152,14 @@ class ForwardTacotron(nn.Module):
         self.post_proj = nn.Linear(2 * postnet_dims, n_mels, bias=False)
         self.pitch_proj = BatchNormConv(1, 2*prenet_dims, kernel=3)
 
-    def forward(self, x, mel, dur, mel_lens):
+    def forward(self, x, mel, dur, mel_lens, pitch):
         if self.training:
             self.step += 1
 
         x = self.embedding(x)
         dur_hat = self.dur_pred(x).squeeze()
         pitch_hat = self.pitch_pred(x).transpose(1, 2)
-        pitch_hat_proj = self.pitch_proj(pitch_hat).transpose(1, 2)
+        pitch_hat_proj = self.pitch_proj(pitch.transpose(1, 2)).transpose(1, 2)
 
         x = x.transpose(1, 2)
         x = self.prenet(x)
