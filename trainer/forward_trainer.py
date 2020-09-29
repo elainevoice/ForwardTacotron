@@ -69,7 +69,6 @@ class ForwardTrainer:
 
                 dur_loss = F.l1_loss(dur_hat, dur)
                 pitch_loss = F.l1_loss(pitch_hat.squeeze(), pitch)
-                pitch_loss_avg.add(pitch_loss.detach().item())
 
                 loss = m1_loss + m2_loss + dur_loss + pitch_loss
                 optimizer.zero_grad()
@@ -82,6 +81,8 @@ class ForwardTrainer:
                 k = step // 1000
 
                 duration_avg.add(time.time() - start)
+                pitch_loss_avg.add(pitch_loss.item())
+
                 speed = 1. / duration_avg.get()
                 msg = f'| Epoch: {e}/{epochs} ({i}/{total_iters}) | Mel Loss: {m_loss_avg.get():#.4} ' \
                       f'| Dur Loss: {dur_loss_avg.get():#.4} | Pitch Loss: {pitch_loss_avg.get():#.4} ' \
