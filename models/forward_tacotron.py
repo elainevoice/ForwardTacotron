@@ -163,7 +163,7 @@ class ForwardTacotron(nn.Module):
 
         x = x.transpose(1, 2)
         x = self.prenet(x)
-        x += pitch_hat_proj
+        x = x + pitch_hat_proj
 
         x = self.lr(x, dur)
 
@@ -198,7 +198,7 @@ class ForwardTacotron(nn.Module):
 
         x = x.transpose(1, 2)
         x = self.prenet(x)
-        x += pitch_hat_proj
+        x = x + pitch_hat_proj
 
         x = self.lr(x, dur)
         x, _ = self.lstm(x)
