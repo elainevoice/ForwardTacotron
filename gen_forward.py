@@ -145,8 +145,8 @@ if __name__ == '__main__':
     for i, x in enumerate(inputs, 1):
 
         print(f'\n| Generating {i}/{len(inputs)}')
-        _, m, _ = tts_model.generate(x, alpha=args.alpha)
-
+        _, m, dur, pitch = tts_model.generate(x, alpha=args.alpha)
+        print(f'pitch: {pitch}')
         if args.vocoder == 'griffinlim':
             v_type = args.vocoder
         elif args.vocoder == 'wavernn' and args.batched:

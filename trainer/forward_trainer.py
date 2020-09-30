@@ -150,7 +150,7 @@ class ForwardTrainer:
         m2_hat_fig = plot_mel(m2_hat)
         m_fig = plot_mel(m)
         pitch_fig = plot_pitch(np_now(pitch[0]))
-        pitch_gta_fig = plot_pitch(np_now(pitch_hat[0]))
+        pitch_gta_fig = plot_pitch(np_now(pitch_hat.squeeze()[0]))
 
         self.writer.add_figure('Pitch/target', pitch_fig, model.step)
         self.writer.add_figure('Pitch/ground_truth_aligned', pitch_gta_fig, model.step)
@@ -172,7 +172,7 @@ class ForwardTrainer:
         m1_hat_fig = plot_mel(m1_hat)
         m2_hat_fig = plot_mel(m2_hat)
 
-        pitch_gen_fig = plot_pitch(np_now(pitch_hat[0]))
+        pitch_gen_fig = plot_pitch(np_now(pitch_hat.squeeze()))
 
         self.writer.add_figure('Pitch/generated', pitch_gen_fig, model.step)
         self.writer.add_figure('Generated/target', m_fig, model.step)
