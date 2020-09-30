@@ -119,6 +119,12 @@ def plot_mel(mel: np.array) -> Figure:
     return fig
 
 
+def plot_pitch(pitch: np.array, color='gray') -> Figure:
+    fig = plt.figure(figsize=(12, 6), dpi=100)
+    plt.plot(pitch, color=color)
+    return fig
+
+
 def plot_attention(attn: np.array) -> Figure:
     fig = plt.figure(figsize=(12, 6))
     plt.imshow(attn.T, interpolation='nearest', aspect='auto')

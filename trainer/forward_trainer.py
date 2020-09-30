@@ -14,7 +14,7 @@ from utils import hparams as hp
 from utils.checkpoints import save_checkpoint
 from utils.dataset import get_tts_datasets
 from utils.decorators import ignore_exception
-from utils.display import stream, simple_table, plot_mel
+from utils.display import stream, simple_table, plot_mel, plot_pitch
 from utils.dsp import reconstruct_waveform, np_now
 from utils.paths import Paths
 
@@ -149,7 +149,11 @@ class ForwardTrainer:
         m1_hat_fig = plot_mel(m1_hat)
         m2_hat_fig = plot_mel(m2_hat)
         m_fig = plot_mel(m)
+        pitch_fig = plot_pitch(np_now(pitch))
+        pitch_gta_fig = plot_pitch(np_now(pitch_hat))
 
+        self.writer.add_figure('Pitch/target', pitch_fig, model.step)
+        self.writer.add_figure('Pitch/ground_truth_aligned', pitch_gta_fig, model.step)
         self.writer.add_figure('Ground_Truth_Aligned/target', m_fig, model.step)
         self.writer.add_figure('Ground_Truth_Aligned/linear', m1_hat_fig, model.step)
         self.writer.add_figure('Ground_Truth_Aligned/postnet', m2_hat_fig, model.step)
@@ -164,10 +168,13 @@ class ForwardTrainer:
             tag='Ground_Truth_Aligned/postnet_wav', snd_tensor=m2_hat_wav,
             global_step=model.step, sample_rate=hp.sample_rate)
 
-        m1_hat, m2_hat, dur_hat = model.generate(x[0].tolist())
+        m1_hat, m2_hat, dur_hat, pitch_hat = model.generate(x[0].tolist())
         m1_hat_fig = plot_mel(m1_hat)
         m2_hat_fig = plot_mel(m2_hat)
 
+        pitch_gen_fig = plot_pitch(np_now(pitch_hat))
+
+        self.writer.add_figure('Pitch/generated', pitch_gen_fig, model.step)
         self.writer.add_figure('Generated/target', m_fig, model.step)
         self.writer.add_figure('Generated/linear', m1_hat_fig, model.step)
         self.writer.add_figure('Generated/postnet', m2_hat_fig, model.step)
