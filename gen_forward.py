@@ -21,6 +21,7 @@ if __name__ == '__main__':
     parser.add_argument('--hp_file', metavar='FILE', default='hparams.py', help='The file to use for the hyperparameters')
     parser.add_argument('--alpha', type=float, default=1., help='Parameter for controlling length regulator for speedup '
                                                                 'or slow-down of generated speech, e.g. alpha=2.0 is double-time')
+    parser.add_argument('--ampl', type=float, default=1., help='Parameter for controlling pitch amplification')
     parser.set_defaults(input_text=None)
     parser.set_defaults(weights_path=None)
 
@@ -120,6 +121,7 @@ if __name__ == '__main__':
     else:
         with open('sentences.txt') as f:
             inputs = [clean_text(l.strip()) for l in f]
+            print(inputs)
         inputs = [text_to_sequence(t) for t in inputs]
 
     tts_k = tts_model.get_step() // 1000
@@ -145,7 +147,7 @@ if __name__ == '__main__':
     for i, x in enumerate(inputs, 1):
 
         print(f'\n| Generating {i}/{len(inputs)}')
-        _, m, dur, pitch = tts_model.generate(x, alpha=args.alpha)
+        _, m, dur, pitch = tts_model.generate(x, alpha=args.alpha, amplification=args.ampl)
         print(f'pitch: {pitch}')
         if args.vocoder == 'griffinlim':
             v_type = args.vocoder
@@ -157,14 +159,14 @@ if __name__ == '__main__':
         if input_text:
             save_path = paths.forward_output/f'{input_text[:10]}_{args.alpha}_{v_type}_{tts_k}k.wav'
         else:
-            save_path = paths.forward_output/f'{i}_{v_type}_{tts_k}k_alpha{args.alpha}.wav'
+            save_path = paths.forward_output/f'{i}_{v_type}_{tts_k}k_alpha{args.alpha}_ampl{args.ampl}.wav'
 
         if args.vocoder == 'wavernn':
             m = torch.tensor(m).unsqueeze(0)
             voc_model.generate(m, save_path, batched, hp.voc_target, hp.voc_overlap, hp.mu_law)
         if args.vocoder == 'melgan':
             m = torch.tensor(m).unsqueeze(0)
-            torch.save(m, paths.forward_output/f'{i}_{tts_k}_alpha{args.alpha}.mel')
+            torch.save(m, paths.forward_output/f'{i}_{tts_k}_alpha{args.alpha}_o.mel')
         elif args.vocoder == 'griffinlim':
             wav = reconstruct_waveform(m, n_iter=args.iters)
             save_wav(wav, save_path)

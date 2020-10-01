@@ -69,9 +69,9 @@ class PitchPredictor(nn.Module):
     def __init__(self, in_dims, conv_dims=256, rnn_dims=64, dropout=0.5):
         super().__init__()
         self.convs = torch.nn.ModuleList([
-            BatchNormConv(in_dims, conv_dims, 5, activation=torch.relu),
-            BatchNormConv(conv_dims, conv_dims, 5, activation=torch.relu),
-            BatchNormConv(conv_dims, conv_dims, 5, activation=torch.relu),
+            BatchNormConv(in_dims, conv_dims, 3, activation=torch.relu),
+            BatchNormConv(conv_dims, conv_dims, 3, activation=torch.relu),
+            BatchNormConv(conv_dims, conv_dims, 3, activation=torch.relu),
         ])
         self.rnn = nn.GRU(conv_dims, rnn_dims, batch_first=True, bidirectional=True)
         self.lin = nn.Linear(2 * rnn_dims, 1)
@@ -130,7 +130,7 @@ class ForwardTacotron(nn.Module):
                                           dropout=durpred_dropout)
         self.pitch_pred = PitchPredictor(embed_dims,
                                          conv_dims=256,
-                                         rnn_dims=128,
+                                         rnn_dims=64,
                                          dropout=0.5)
         self.prenet = CBHG(K=prenet_k,
                            in_channels=embed_dims,
@@ -186,7 +186,7 @@ class ForwardTacotron(nn.Module):
         x = self.pad(x, mel.size(2))
         return x, x_post, dur_hat, pitch_hat
 
-    def generate(self, x, alpha=1.0):
+    def generate(self, x, alpha=1.0, amplification=1.0):
         self.eval()
         device = next(self.parameters()).device  # use same device as parameters
         x = torch.as_tensor(x, dtype=torch.long, device=device).unsqueeze(0)
@@ -195,6 +195,10 @@ class ForwardTacotron(nn.Module):
         dur = self.dur_pred(x, alpha=alpha)
         dur = dur.squeeze(2)
         pitch_hat = self.pitch_pred(x).transpose(1, 2)
+        pitch_mean = torch.mean(pitch_hat[pitch_hat > 20.])
+        pitch_hat = pitch_mean + (pitch_hat - pitch_mean) * amplification
+        pitch_hat = torch.clamp(pitch_hat, 0.)
+
         pitch_hat_proj = self.pitch_proj(pitch_hat).transpose(1, 2)
 
         x = x.transpose(1, 2)
