@@ -121,7 +121,7 @@ forward_dropout = 0.1
 
 # Training
 
-forward_schedule = [(1e-4, 10_000,  2),    # progressive training schedule
+forward_schedule = [(1e-4, 10_000,  32),    # progressive training schedule
                     (1e-4, 300_000,  32),   # (lr, step, batch_size)
                     (2e-5, 600_000,  32)]   # (lr, step, batch_size)
 
