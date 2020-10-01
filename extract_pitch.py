@@ -41,6 +41,7 @@ if __name__ == '__main__':
         dur = np.load(paths.alg / f'{item_id}.npy')
         pitch = np.load(paths.raw_pitch / f'{item_id}.npy')
         dur_cum = np.cumsum(dur)
+        dur_cum = np.pad(dur_cum, (1, 0))
         phoneme_pitch = np.zeros(dur_cum.shape[0])
         for i in range(dur_cum.shape[0]-1):
             left, right = dur_cum[i], dur_cum[i+1]
