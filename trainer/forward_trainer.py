@@ -124,7 +124,8 @@ class ForwardTrainer:
         pitch_val_loss = 0
         device = next(model.parameters()).device
         for i, (x, m, ids, x_lens, mel_lens, dur, pitch) in enumerate(val_set, 1):
-            x, m, dur, mel_lens, pitch = x.to(device), m.to(device), dur.to(device), mel_lens.to(device), pitch.to(device)
+            x, m, dur, x_lens, mel_lens, pitch = x.to(device), m.to(device), dur.to(device),
+            x_lens.to(device), mel_lens.to(device), pitch.to(device)
             with torch.no_grad():
                 m1_hat, m2_hat, dur_hat, pitch_hat = model(x, m, dur, mel_lens, pitch)
                 m1_loss = self.l1_loss(m1_hat, m, mel_lens)
