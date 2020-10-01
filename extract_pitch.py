@@ -36,7 +36,7 @@ if __name__ == '__main__':
     all_data = filter_max_len(all_data)
 
     phoneme_pitches = []
-
+    text_dict = unpickle_binary('text_dict.pkl')
     # adapted from https://github.com/NVIDIA/DeepLearningExamples/blob/0b27e359a5869cd23294c1707c92f989c0bf201e/PyTorch/SpeechSynthesis/FastPitch/extract_mels.py
     for prog_idx, (item_id, mel_len) in enumerate(all_data, 1):
         dur = np.load(paths.alg / f'{item_id}.npy')
@@ -49,6 +49,7 @@ if __name__ == '__main__':
             values = values[np.where(values < MAX_FREQ)[0]]
             pitch_char[idx] = np.mean(values) if len(values) > 0 else 0.0
 
+        print(f'{item_id} {text_dict[item_id]} {dur} {pitch_char}')
         phoneme_pitches.append((item_id, pitch_char))
         bar = progbar(prog_idx, len(all_data))
         message = f'{bar} {prog_idx}/{len(all_data)} '
