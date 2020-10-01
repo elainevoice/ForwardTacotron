@@ -37,24 +37,22 @@ if __name__ == '__main__':
 
     phoneme_pitches = []
 
-    for idx, (item_id, mel_len) in enumerate(all_data, 1):
+    # adapted from https://github.com/NVIDIA/DeepLearningExamples/blob/0b27e359a5869cd23294c1707c92f989c0bf201e/PyTorch/SpeechSynthesis/FastPitch/extract_mels.py
+    for prog_idx, (item_id, mel_len) in enumerate(all_data, 1):
         dur = np.load(paths.alg / f'{item_id}.npy')
         pitch = np.load(paths.raw_pitch / f'{item_id}.npy')
-        dur_cum = np.cumsum(dur)
-        dur_cum = np.pad(dur_cum, (1, 0))
-        phoneme_pitch = np.zeros(dur_cum.shape[0])
-        for i in range(dur_cum.shape[0]-1):
-            left, right = dur_cum[i], dur_cum[i+1]
-            pitch_vals = pitch[left:right]
-            pitch_vals = pitch_vals[pitch_vals != 0.0]
-            pitch_vals = pitch_vals[pitch_vals < MAX_FREQ]
-            pitch_mean = np.mean(pitch_vals) if len(pitch_vals) > 0.0 else 0.0
-            phoneme_pitch[i] = pitch_mean
-        phoneme_pitches.append((item_id, phoneme_pitch))
-        bar = progbar(idx, len(all_data))
-        message = f'{bar} {idx}/{len(all_data)} '
-        stream(message)
+        durs_cum = np.cumsum(np.pad(dur, (1, 0)))
 
+        pitch_char = np.zeros((dur.shape[0],), dtype=np.float)
+        for idx, a, b in zip(range(mel_len), durs_cum[:-1], durs_cum[1:]):
+            values = pitch[a:b][np.where(pitch[a:b] != 0.0)[0]]
+            values = values[np.where(values < MAX_FREQ)[0]]
+            pitch_char[idx] = np.mean(values) if len(values) > 0 else 0.0
+
+        phoneme_pitches.append((item_id, pitch_char))
+        bar = progbar(prog_idx, len(all_data))
+        message = f'{bar} {prog_idx}/{len(all_data)} '
+        stream(message)
 
     mean, std = normalize(phoneme_pitches)
     print(f'mean {mean} std {std} ')

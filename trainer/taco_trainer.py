@@ -54,7 +54,7 @@ class TacoTrainer:
         duration_avg = Averager()
         device = next(model.parameters()).device  # use same device as model parameters
         for e in range(1, epochs + 1):
-            for i, (x, m, ids, mel_lens) in enumerate(session.train_set, 1):
+            for i, (x, m, ids, x_lens, mel_lens) in enumerate(session.train_set, 1):
                 start = time.time()
                 model.train()
                 x, m = x.to(device), m.to(device)
@@ -109,7 +109,7 @@ class TacoTrainer:
         val_loss = 0
         val_att_score = 0
         device = next(model.parameters()).device
-        for i, (x, m, ids, mel_lens) in enumerate(val_set, 1):
+        for i, (x, m, ids, x_lens, mel_lens) in enumerate(val_set, 1):
             x, m = x.to(device), m.to(device)
             with torch.no_grad():
                 m1_hat, m2_hat, attention = model(x, m)
@@ -125,7 +125,7 @@ class TacoTrainer:
     def generate_plots(self, model: Tacotron, session: TTSSession) -> None:
         model.eval()
         device = next(model.parameters()).device
-        x, m, ids, lens = session.val_sample
+        x, m, ids, x_lens, m_lens = session.val_sample
         x, m = x.to(device), m.to(device)
 
         m1_hat, m2_hat, att = model(x, m)
@@ -154,7 +154,7 @@ class TacoTrainer:
             tag='Ground_Truth_Aligned/postnet_wav', snd_tensor=m2_hat_wav,
             global_step=model.step, sample_rate=hp.sample_rate)
 
-        m1_hat, m2_hat, att = model.generate(x[0].tolist(), steps=lens[0] + 20)
+        m1_hat, m2_hat, att = model.generate(x[0].tolist(), steps=m_lens[0] + 20)
         att_fig = plot_attention(att)
         m1_hat_fig = plot_mel(m1_hat)
         m2_hat_fig = plot_mel(m2_hat)

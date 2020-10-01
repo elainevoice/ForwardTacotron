@@ -9,7 +9,7 @@ from torch.utils.data.dataset import Dataset
 from torch.utils.tensorboard import SummaryWriter
 
 from models.forward_tacotron import ForwardTacotron
-from trainer.common import Averager, TTSSession, MaskedL1
+from trainer.common import Averager, TTSSession, MaskedL1, MaskedL2
 from utils import hparams as hp
 from utils.checkpoints import save_checkpoint
 from utils.dataset import get_tts_datasets
@@ -25,6 +25,7 @@ class ForwardTrainer:
         self.paths = paths
         self.writer = SummaryWriter(log_dir=paths.forward_log, comment='v1')
         self.l1_loss = MaskedL1()
+        self.l2_loss = MaskedL2()
 
     def train(self, model: ForwardTacotron, optimizer: Optimizer) -> None:
         for i, session_params in enumerate(hp.forward_schedule, 1):
@@ -56,19 +57,20 @@ class ForwardTrainer:
         pitch_loss_avg = Averager()
         device = next(model.parameters()).device  # use same device as model parameters
         for e in range(1, epochs + 1):
-            for i, (x, m, ids, lens, dur, pitch) in enumerate(session.train_set, 1):
+            for i, (x, m, ids, x_lens, mel_lens, dur, pitch) in enumerate(session.train_set, 1):
 
                 start = time.time()
                 model.train()
-                x, m, dur, lens, pitch = x.to(device), m.to(device), dur.to(device), lens.to(device), pitch.to(device)
+                x, m, dur, x_lens, mel_lens, pitch = x.to(device), m.to(device), dur.to(device),\
+                                                     x_lens.to(device), mel_lens.to(device), pitch.to(device)
 
-                m1_hat, m2_hat, dur_hat, pitch_hat = model(x, m, dur, lens, pitch)
+                m1_hat, m2_hat, dur_hat, pitch_hat = model(x, m, dur, mel_lens, pitch)
 
-                m1_loss = self.l1_loss(m1_hat, m, lens)
-                m2_loss = self.l1_loss(m2_hat, m, lens)
+                m1_loss = self.l1_loss(m1_hat, m, mel_lens)
+                m2_loss = self.l1_loss(m2_hat, m, mel_lens)
 
-                dur_loss = F.l1_loss(dur_hat, dur)
-                pitch_loss = F.l1_loss(pitch_hat, pitch.unsqueeze(1))
+                dur_loss = self.l1_loss(dur_hat.unsqueeze(1), dur.unsqueeze(1), x_lens)
+                pitch_loss = self.l2_loss(pitch_hat, pitch.unsqueeze(1))
 
                 loss = m1_loss + m2_loss + dur_loss + pitch_loss
                 optimizer.zero_grad()
@@ -121,14 +123,14 @@ class ForwardTrainer:
         dur_val_loss = 0
         pitch_val_loss = 0
         device = next(model.parameters()).device
-        for i, (x, m, ids, lens, dur, pitch) in enumerate(val_set, 1):
-            x, m, dur, lens, pitch = x.to(device), m.to(device), dur.to(device), lens.to(device), pitch.to(device)
+        for i, (x, m, ids, x_lens, mel_lens, dur, pitch) in enumerate(val_set, 1):
+            x, m, dur, mel_lens, pitch = x.to(device), m.to(device), dur.to(device), mel_lens.to(device), pitch.to(device)
             with torch.no_grad():
-                m1_hat, m2_hat, dur_hat, pitch_hat = model(x, m, dur, lens, pitch)
-                m1_loss = self.l1_loss(m1_hat, m, lens)
-                m2_loss = self.l1_loss(m2_hat, m, lens)
-                dur_loss = F.l1_loss(dur_hat, dur)
-                pitch_val_loss += F.l1_loss(pitch_hat, pitch.unsqueeze(1))
+                m1_hat, m2_hat, dur_hat, pitch_hat = model(x, m, dur, mel_lens, pitch)
+                m1_loss = self.l1_loss(m1_hat, m, mel_lens)
+                m2_loss = self.l1_loss(m2_hat, m, mel_lens)
+                dur_loss = self.l1_loss(dur_hat.unsqueeze(1), dur.unsqueeze(1), x_lens)
+                pitch_val_loss += self.l2_loss(pitch_hat, pitch.unsqueeze(1))
                 m_val_loss += m1_loss.item() + m2_loss.item()
                 dur_val_loss += dur_loss.item()
         return m_val_loss / len(val_set), dur_val_loss / len(val_set), pitch_val_loss / len(val_set)

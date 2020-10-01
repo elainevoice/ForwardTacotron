@@ -229,6 +229,7 @@ def collate_tts(batch, r):
     mel = np.stack(mel)
     ids = [x[2] for x in batch]
     mel_lens = [x[3] for x in batch]
+    x_lens = torch.tensor(x_lens)
     mel_lens = torch.tensor(mel_lens)
     chars = torch.tensor(chars).long()
     mel = torch.tensor(mel)
@@ -240,9 +241,9 @@ def collate_tts(batch, r):
         pitch = [pad1d(x[5][:max_x_len], max_x_len) for x in batch]
         pitch = np.stack(pitch)
         pitch = torch.tensor(pitch).float()
-        return chars, mel, ids, mel_lens, dur, pitch
+        return chars, mel, ids, x_lens, mel_lens, dur, pitch
     else:
-        return chars, mel, ids, mel_lens
+        return chars, mel, ids, x_lens, mel_lens
 
 
 class BinnedLengthSampler(Sampler):
