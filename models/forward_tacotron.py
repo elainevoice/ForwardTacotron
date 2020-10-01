@@ -69,9 +69,9 @@ class PitchPredictor(nn.Module):
     def __init__(self, in_dims, conv_dims=256, rnn_dims=64, dropout=0.5):
         super().__init__()
         self.convs = torch.nn.ModuleList([
-            BatchNormConv(in_dims, conv_dims, 3, activation=torch.relu),
-            BatchNormConv(conv_dims, conv_dims, 3, activation=torch.relu),
-            BatchNormConv(conv_dims, conv_dims, 3, activation=torch.relu),
+            BatchNormConv(in_dims, conv_dims, 5, activation=torch.relu),
+            BatchNormConv(conv_dims, conv_dims, 5, activation=torch.relu),
+            BatchNormConv(conv_dims, conv_dims, 5, activation=torch.relu),
         ])
         self.rnn = nn.GRU(conv_dims, rnn_dims, batch_first=True, bidirectional=True)
         self.lin = nn.Linear(2 * rnn_dims, 1)
@@ -130,7 +130,7 @@ class ForwardTacotron(nn.Module):
                                           dropout=durpred_dropout)
         self.pitch_pred = PitchPredictor(embed_dims,
                                          conv_dims=256,
-                                         rnn_dims=64,
+                                         rnn_dims=128,
                                          dropout=0.5)
         self.prenet = CBHG(K=prenet_k,
                            in_channels=embed_dims,
