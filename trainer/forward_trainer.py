@@ -140,10 +140,10 @@ class ForwardTrainer:
     def generate_plots(self, model: ForwardTacotron, session: TTSSession) -> None:
         model.eval()
         device = next(model.parameters()).device
-        x, m, ids, lens, dur, pitch = session.val_sample
-        x, m, dur, pitch = x.to(device), m.to(device), dur.to(device), pitch.to(device)
+        x, m, ids, x_lens, mel_lens, dur, pitch = session.val_sample
+        x, m, dur, mel_lens, pitch = x.to(device), m.to(device), dur.to(device), mel_lens.to(device), pitch.to(device)
 
-        m1_hat, m2_hat, dur_hat, pitch_hat = model(x, m, dur, lens, pitch)
+        m1_hat, m2_hat, dur_hat, pitch_hat = model(x, m, dur, mel_lens, pitch)
         m1_hat = np_now(m1_hat)[0, :600, :]
         m2_hat = np_now(m2_hat)[0, :600, :]
         m = np_now(m)[0, :600, :]
