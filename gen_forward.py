@@ -7,8 +7,9 @@ from utils.text.symbols import phonemes
 from utils.paths import Paths
 import argparse
 from utils.text import text_to_sequence, clean_text
-from utils.display import simple_table
+from utils.display import simple_table, plot_pitch
 from utils.dsp import reconstruct_waveform, save_wav
+import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
 
@@ -148,7 +149,6 @@ if __name__ == '__main__':
 
         print(f'\n| Generating {i}/{len(inputs)}')
         _, m, dur, pitch = tts_model.generate(x, alpha=args.alpha, amplification=args.ampl)
-        print(f'pitch: {pitch}')
         if args.vocoder == 'griffinlim':
             v_type = args.vocoder
         elif args.vocoder == 'wavernn' and args.batched:
@@ -159,14 +159,17 @@ if __name__ == '__main__':
         if input_text:
             save_path = paths.forward_output/f'{input_text[:10]}_{args.alpha}_{v_type}_{tts_k}k.wav'
         else:
-            save_path = paths.forward_output/f'{i}_{v_type}_{tts_k}k_alpha{args.alpha}_ampl{args.ampl}.wav'
+            save_path = paths.forward_output/f'{i}_{v_type}_{tts_k}k_alpha{args.alpha}_ampl{args.ampl}_o.wav'
+
+        fig = plot_pitch(pitch.squeeze().detach().numpy())
+        plt.savefig(str(save_path).replace('.wav', '.png'))
 
         if args.vocoder == 'wavernn':
             m = torch.tensor(m).unsqueeze(0)
             voc_model.generate(m, save_path, batched, hp.voc_target, hp.voc_overlap, hp.mu_law)
         if args.vocoder == 'melgan':
             m = torch.tensor(m).unsqueeze(0)
-            torch.save(m, paths.forward_output/f'{i}_{tts_k}_alpha{args.alpha}_ampl{args.ampl}.mel')
+            torch.save(m, paths.forward_output/f'{i}_{tts_k}_alpha{args.alpha}_ampl{args.ampl}_n.mel')
         elif args.vocoder == 'griffinlim':
             wav = reconstruct_waveform(m, n_iter=args.iters)
             save_wav(wav, save_path)

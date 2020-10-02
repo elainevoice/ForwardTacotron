@@ -5,12 +5,22 @@ import parselmouth
 import librosa
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy import ndimage as nd
 
 from utils.dataset import get_tts_datasets, filter_max_len
 from utils.display import plot_mel, progbar, stream
 from utils.dsp import melspectrogram
 from utils.files import unpickle_binary
 from utils.paths import Paths
+
+
+def interpolate(data, invalid=None):
+    if invalid is None: invalid = np.isnan(data)
+
+    ind = nd.distance_transform_edt(invalid,
+                                    return_distances=False,
+                                    return_indices=True)
+    return data[tuple(ind)]
 
 
 def normalize(phoneme_pitches):
@@ -22,12 +32,11 @@ def normalize(phoneme_pitches):
         v -= mean
         v /= std
         v[zero_idxs] = 0.0
-        print(v)
     return mean, std
 
 if __name__ == '__main__':
 
-    MAX_FREQ = 200.
+    MAX_FREQ = 250.
     hp.configure('hparams.py')
     train_data = unpickle_binary('data/train_dataset.pkl')
     val_data = unpickle_binary('data/val_dataset.pkl')
@@ -36,7 +45,7 @@ if __name__ == '__main__':
     all_data = filter_max_len(all_data)
 
     phoneme_pitches = []
-    text_dict = unpickle_binary('text_dict.pkl')
+    text_dict = unpickle_binary('data/text_dict.pkl')
     # adapted from https://github.com/NVIDIA/DeepLearningExamples/blob/0b27e359a5869cd23294c1707c92f989c0bf201e/PyTorch/SpeechSynthesis/FastPitch/extract_mels.py
     for prog_idx, (item_id, mel_len) in enumerate(all_data, 1):
         dur = np.load(paths.alg / f'{item_id}.npy')
@@ -48,8 +57,8 @@ if __name__ == '__main__':
             values = pitch[a:b][np.where(pitch[a:b] != 0.0)[0]]
             values = values[np.where(values < MAX_FREQ)[0]]
             pitch_char[idx] = np.mean(values) if len(values) > 0 else 0.0
-
-        print(f'{item_id} {text_dict[item_id]} {dur} {pitch_char}')
+        #print(f'{item_id} {pitch_char}')
+        #print(f'{item_id} {text_dict[item_id]} {dur} {pitch_char}')
         phoneme_pitches.append((item_id, pitch_char))
         bar = progbar(prog_idx, len(all_data))
         message = f'{bar} {prog_idx}/{len(all_data)} '
@@ -58,8 +67,21 @@ if __name__ == '__main__':
     mean, std = normalize(phoneme_pitches)
     print(f'mean {mean} std {std} ')
 
+    """
+    phoneme_pitches_interp = []
     for item_id, phoneme_pitch in phoneme_pitches:
-        np.save(paths.phon_pitch / f'{item_id}.npy', phoneme_pitch)
+        print(f'{item_id} {phoneme_pitch}')
+        phoneme_pitch[np.where(phoneme_pitch==0.0)[0]] = np.nan
+        phoneme_pitch_interp = interpolate(phoneme_pitch)
+        phoneme_pitches_interp.append((item_id, phoneme_pitch_interp))
+        print(f'dilated: {item_id} {phoneme_pitch_interp}')
+    """
+    print('done. Saving.')
+
+    for item_id, phoneme_pitch in phoneme_pitches:
+
+        np.save(paths.phon_pitch / f'{item_id}.npy', phoneme_pitch, allow_pickle=False)
+
 
 
 

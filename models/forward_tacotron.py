@@ -197,6 +197,8 @@ class ForwardTacotron(nn.Module):
         dur = self.dur_pred(x, alpha=alpha)
         dur = dur.squeeze(2)
         pitch_hat = self.pitch_pred(x).transpose(1, 2) * amplification
+        #pitch_hat[:, :, -10:] -= torch.tensor(np.arange(10)*0.2)
+        #print(pitch_hat[:, :, -10:])
         pitch_hat_proj = self.pitch_proj(pitch_hat).transpose(1, 2)
 
         x = x.transpose(1, 2)
