@@ -3,11 +3,11 @@ from scipy.sparse import coo_matrix
 from scipy.sparse.csgraph import dijkstra
 
 
-def to_node_index(i, j, cols):
+def from_ij_to_node_index(i, j, cols):
     return cols * i + j
 
 
-def from_node_index(node_index, cols):
+def from_node_index_to_ij(node_index, cols):
     return node_index // cols, node_index % cols
 
 
@@ -22,24 +22,24 @@ def to_adj_matrix(mat):
     for i in range(rows):
         for j in range(cols):
 
-            node = to_node_index(i, j, cols)
+            node = from_ij_to_node_index(i, j, cols)
 
             if j < cols - 1:
-                right_node = to_node_index(i, j + 1, cols)
+                right_node = from_ij_to_node_index(i, j + 1, cols)
                 weight_right = mat[i, j + 1]
                 row_ind.append(node)
                 col_ind.append(right_node)
                 data.append(weight_right)
 
             if i < rows - 1 and j < cols:
-                bottom_node = to_node_index(i + 1, j, cols)
+                bottom_node = from_ij_to_node_index(i + 1, j, cols)
                 weight_bottom = mat[i + 1, j]
                 row_ind.append(node)
                 col_ind.append(bottom_node)
                 data.append(weight_bottom)
 
             if i < rows - 1 and j < cols - 1:
-                bottom_right_node = to_node_index(i + 1, j + 1, cols)
+                bottom_right_node = from_ij_to_node_index(i + 1, j + 1, cols)
                 weight_bottom_right = mat[i + 1, j + 1]
                 row_ind.append(node)
                 col_ind.append(bottom_right_node)
@@ -74,7 +74,7 @@ def extract_durations_with_dijkstra(seq: np.array, att: np.array, mel_len: int) 
 
     # collect indices (mel, text) along the path
     for node_index in path:
-        i, j = from_node_index(node_index, cols)
+        i, j = from_node_index_to_ij(node_index, cols)
         mel_text[i] = j
 
     for j in mel_text.values():
