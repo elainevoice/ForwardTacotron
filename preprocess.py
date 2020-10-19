@@ -77,8 +77,8 @@ if __name__ == '__main__':
     paths = Paths(hp.data_path, hp.voc_model_id, hp.tts_model_id)
     print(f'\n{len(wav_files)} {extension[1:]} files found in "{path}"\n')
     assert len(wav_files) > 0, f'Found no wav files in {path}, exiting.'
-
     text_dict = ljspeech(path)
+    wav_files = [w for w in wav_files if w.stem in text_dict]
     n_workers = max(1, args.num_workers)
 
     simple_table([
