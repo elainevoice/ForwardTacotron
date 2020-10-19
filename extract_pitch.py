@@ -48,8 +48,8 @@ if __name__ == '__main__':
     text_dict = unpickle_binary('data/text_dict.pkl')
     # adapted from https://github.com/NVIDIA/DeepLearningExamples/blob/0b27e359a5869cd23294c1707c92f989c0bf201e/PyTorch/SpeechSynthesis/FastPitch/extract_mels.py
     for prog_idx, (item_id, mel_len) in enumerate(all_data, 1):
-        assert np.sum(dur) == mel_len
         dur = np.load(paths.alg / f'{item_id}.npy')
+        assert np.sum(dur) == mel_len
         pitch = np.load(paths.raw_pitch / f'{item_id}.npy')
         durs_cum = np.cumsum(np.pad(dur, (1, 0)))
 
