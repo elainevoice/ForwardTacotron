@@ -66,11 +66,11 @@ class ForwardTrainer:
 
                 m1_hat, m2_hat, dur_hat, pitch_hat = model(x, m, dur, mel_lens, pitch)
 
-                m1_loss = self.l2_loss(m1_hat, m, mel_lens)
-                m2_loss = self.l2_loss(m2_hat, m, mel_lens)
+                m1_loss = self.l1_loss(m1_hat, m, mel_lens)
+                m2_loss = self.l1_loss(m2_hat, m, mel_lens)
 
                 dur_loss = self.l1_loss(dur_hat.unsqueeze(1), dur.unsqueeze(1), x_lens)
-                pitch_loss = self.l2_loss(pitch_hat, pitch.unsqueeze(1), x_lens)
+                pitch_loss = self.l1_loss(pitch_hat, pitch.unsqueeze(1), x_lens)
 
                 loss = m1_loss + m2_loss + 0.1 * dur_loss + 0.1 * pitch_loss
                 optimizer.zero_grad()
@@ -131,7 +131,7 @@ class ForwardTrainer:
                 m1_loss = self.l1_loss(m1_hat, m, mel_lens)
                 m2_loss = self.l1_loss(m2_hat, m, mel_lens)
                 dur_loss = self.l1_loss(dur_hat.unsqueeze(1), dur.unsqueeze(1), x_lens)
-                pitch_val_loss += self.l2_loss(pitch_hat, pitch.unsqueeze(1), x_lens)
+                pitch_val_loss += self.l1_loss(pitch_hat, pitch.unsqueeze(1), x_lens)
                 m_val_loss += m1_loss.item() + m2_loss.item()
                 dur_val_loss += dur_loss.item()
         return m_val_loss / len(val_set), dur_val_loss / len(val_set), pitch_val_loss / len(val_set)
