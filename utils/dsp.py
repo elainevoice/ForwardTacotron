@@ -16,6 +16,10 @@ def float_2_label(x, bits):
     return x.clip(0, 2**bits - 1)
 
 
+def trim_silence(wav):
+    return librosa.effects.trim(wav, top_db=hp.trim_silence_top_db, frame_length=2048, hop_length=512)[0]
+
+
 def load_wav(path):
     return librosa.load(path, sr=hp.sample_rate)[0]
 

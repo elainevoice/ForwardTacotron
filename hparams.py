@@ -29,7 +29,7 @@ bits = 9                            # bit depth of signal
 mu_law = True                       # Recommended to suppress noise if using raw bits in hp.voc_mode below
 peak_norm = False                   # Normalise to the peak of each wav file
 
-
+trim_silence_top_db = 60
 # GENERAL TRAINING ----------------------------------------------------------------------------------------------------------#
 
 seed = 42

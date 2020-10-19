@@ -36,7 +36,7 @@ def normalize(phoneme_pitches):
 
 if __name__ == '__main__':
 
-    MAX_FREQ = 250.
+    MAX_FREQ = 1250.
     hp.configure('hparams.py')
     train_data = unpickle_binary('data/train_dataset.pkl')
     val_data = unpickle_binary('data/val_dataset.pkl')

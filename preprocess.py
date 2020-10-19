@@ -39,6 +39,7 @@ class Preprocessor:
 
     def _convert_file(self, path: Path) -> Tuple[np.array, np.array, np.array]:
         y = load_wav(path)
+        y = trim_silence(y)
         peak = np.abs(y).max()
         if hp.peak_norm or peak > 1.0:
             y /= peak
