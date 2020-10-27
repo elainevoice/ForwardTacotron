@@ -18,10 +18,9 @@ The model has following advantages:
 does not use any attention. Hence, the required memory grows linearly with text size, which makes it possible to synthesize large articles at once.
 
 
-## UPDATE (25.09.2020)
-- Added an attention metric to monitor tacotron training.
-- Attention metric can be used to filter bad duration extractions.
-- More robust and precise duration extraction from attention alignments using dijkstra.
+## UPDATE (28.10.2020)
+- Added pitch conditioning similar to the one in [FastPitch](https://arxiv.org/abs/2006.06873), model converges now in about 50k steps (a couple hrs training).
+- Pitch can be manipulated in inference, e.g. with --amp 2.0 for larger pitch swings.
 
 ## 🔈 Samples
 
@@ -138,6 +137,7 @@ Here is what the WaveRNN tensorboard looks like:
 ## References
 
 * [FastSpeech: Fast, Robust and Controllable Text to Speech](https://arxiv.org/abs/1905.09263)
+* [FastPitch: Parallel Text-to-speech with Pitch Prediction](https://arxiv.org/abs/2006.06873)
 
 ## Acknowlegements
 
@@ -146,6 +146,7 @@ Here is what the WaveRNN tensorboard looks like:
 * [https://github.com/seungwonpark/melgan](https://github.com/seungwonpark/melgan)
 * [https://github.com/xcmyz/LightSpeech](https://github.com/xcmyz/LightSpeech)
 * [https://github.com/resemble-ai/Resemblyzer](https://github.com/resemble-ai/Resemblyzer)
+* [https://github.com/NVIDIA/DeepLearningExamples/tree/master/PyTorch/SpeechSynthesis/FastPitch](https://github.com/NVIDIA/DeepLearningExamples/tree/master/PyTorch/SpeechSynthesis/FastPitch)
 
 ## Maintainers
 
