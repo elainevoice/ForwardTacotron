@@ -238,6 +238,7 @@ def collate_tts(batch, r):
         dur = [pad1d(x[4][:max_x_len], max_x_len) for x in batch]
         dur = np.stack(dur)
         dur = torch.tensor(dur).float()
+        dur = torch.log(dur + 1.)
         pitch = [pad1d(x[5][:max_x_len], max_x_len) for x in batch]
         pitch = np.stack(pitch)
         pitch = torch.tensor(pitch).float()

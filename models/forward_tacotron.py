@@ -163,6 +163,7 @@ class ForwardTacotron(nn.Module):
 
         x = self.embedding(x)
         dur_hat = self.dur_pred(x).squeeze()
+
         pitch_hat = self.pitch_pred(x).transpose(1, 2)
         pitch = pitch.unsqueeze(1)
 
@@ -202,6 +203,7 @@ class ForwardTacotron(nn.Module):
         x = self.embedding(x)
         dur = self.dur_pred(x, alpha=alpha)
         dur = dur.squeeze(2)
+        dur = torch.clamp(torch.exp(dur) - 1, min=0.)
 
         pitch_hat = self.pitch_pred(x).transpose(1, 2) * amplification
 
