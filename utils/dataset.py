@@ -5,7 +5,7 @@ from typing import List, Dict
 from utils.dsp import *
 from utils import hparams as hp
 from utils.files import unpickle_binary
-from utils.text import text_to_sequence
+from utils.text import text_to_sequence, whitespace_index
 from pathlib import Path
 import random
 
@@ -202,6 +202,19 @@ class ForwardDataset(Dataset):
         mel_len = mel.shape[-1]
         dur = np.load(str(self.path/'alg'/f'{item_id}.npy'))
         pitch = np.load(str(self.path/'phon_pitch'/f'{item_id}.npy'))
+
+        dur_cum = np.cumsum(dur).astype(np.int)
+        w = np.where(np.array(x) == whitespace_index)[0]
+        if len(w) > 3:
+            inds = np.random.choice(w, size=2, replace=False)
+            l, r = np.min(inds), np.max(inds)
+            ml, mr = dur_cum[l], dur_cum[r]
+            x = x[l:r]
+            dur = dur[l:r]
+            pitch = pitch[l:r]
+            mel = mel[:, ml:mr]
+            mel_len = mr-mr
+
         return x, mel, item_id, mel_len, dur, pitch
 
     def __len__(self):

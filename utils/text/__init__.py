@@ -12,6 +12,7 @@ _id_to_symbol = {i: s for i, s in enumerate(phonemes)}
 # Regular expression matching text enclosed in curly braces:
 _curly_re = re.compile(r'(.*?)\{(.+?)\}(.*)')
 
+whitespace_index = _symbol_to_id[' ']
 
 def text_to_sequence(text):
     '''Converts a string of text to a sequence of IDs corresponding to the symbols in the text.
