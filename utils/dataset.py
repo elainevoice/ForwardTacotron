@@ -5,7 +5,7 @@ from typing import List, Dict
 from utils.dsp import *
 from utils import hparams as hp
 from utils.files import unpickle_binary
-from utils.text import text_to_sequence, whitespace_index
+from utils.text import text_to_sequence
 from pathlib import Path
 import random
 
@@ -113,7 +113,7 @@ def get_tts_datasets(path: Path, batch_size, r, model_type='tacotron'):
     val_data = filter_max_len(val_data)
     train_len_original = len(train_data)
 
-    if model_type == 'forward' and hp.forward_filter_attention:
+    if model_type == 'forward':
         attention_score_dict = unpickle_binary(path/'att_score_dict.pkl')
         train_data = filter_bad_attentions(train_data, attention_score_dict)
         val_data = filter_bad_attentions(val_data, attention_score_dict)
@@ -136,9 +136,8 @@ def get_tts_datasets(path: Path, batch_size, r, model_type='tacotron'):
     train_set = DataLoader(train_dataset,
                            collate_fn=lambda batch: collate_tts(batch, r),
                            batch_size=batch_size,
-                           sampler=None,
+                           sampler=train_sampler,
                            num_workers=0,
-                           shuffle=True,
                            pin_memory=True)
 
     val_set = DataLoader(val_dataset,
@@ -180,7 +179,7 @@ class TacoDataset(Dataset):
         item_id = self.metadata[index]
         text = self.text_dict[item_id]
         x = text_to_sequence(text)
-        mel = np.load(str(self.path/'mel'/f'{item_id}.npy'))
+        mel = np.load(self.path/'mel'/f'{item_id}.npy')
         mel_len = mel.shape[-1]
         return x, mel, item_id, mel_len
 
@@ -199,25 +198,10 @@ class ForwardDataset(Dataset):
         item_id = self.metadata[index]
         text = self.text_dict[item_id]
         x = text_to_sequence(text)
-        mel = np.load(str(self.path/'mel'/f'{item_id}.npy'))
+        mel = np.load(self.path/'mel'/f'{item_id}.npy')
         mel_len = mel.shape[-1]
-        dur = np.load(str(self.path/'alg'/f'{item_id}.npy'))
-        pitch = np.load(str(self.path/'phon_pitch'/f'{item_id}.npy'))
-
-        dur_cum = np.cumsum(dur).astype(np.int)
-        w = np.where(np.array(x) == whitespace_index)[0].tolist()
-        w = [0] + w + [len(dur)-1]
-        if len(w) > 3:
-            inds = np.random.choice(w, size=2, replace=False)
-            l, r = np.min(inds), np.max(inds)
-            ml, mr = dur_cum[l], dur_cum[r]
-            x = x[l:r]
-            dur = dur[l:r]
-            pitch = pitch[l:r]
-            mel = mel[:, ml:mr]
-            mel_len = mr-ml
-
-        return x, mel, item_id, mel_len, dur, pitch
+        dur = np.load(self.path/'alg'/f'{item_id}.npy')
+        return x, mel, item_id, mel_len, dur
 
     def __len__(self):
         return len(self.metadata)
@@ -232,11 +216,6 @@ def pad2d(x, max_len):
 
 
 def collate_tts(batch, r):
-    batch.sort(key=lambda x: len(x[0]))
-    batch = batch[:]
-    bs = len(batch)
-    start = random.randint(0, bs-8)
-    batch = batch[start:start+8]
     x_lens = [len(x[0]) for x in batch]
     max_x_len = max(x_lens)
     chars = [pad1d(x[0], max_x_len) for x in batch]
@@ -249,7 +228,6 @@ def collate_tts(batch, r):
     mel = np.stack(mel)
     ids = [x[2] for x in batch]
     mel_lens = [x[3] for x in batch]
-    x_lens = torch.tensor(x_lens)
     mel_lens = torch.tensor(mel_lens)
     chars = torch.tensor(chars).long()
     mel = torch.tensor(mel)
@@ -258,12 +236,9 @@ def collate_tts(batch, r):
         dur = [pad1d(x[4][:max_x_len], max_x_len) for x in batch]
         dur = np.stack(dur)
         dur = torch.tensor(dur).float()
-        pitch = [pad1d(x[5][:max_x_len], max_x_len) for x in batch]
-        pitch = np.stack(pitch)
-        pitch = torch.tensor(pitch).float()
-        return chars, mel, ids, x_lens, mel_lens, dur, pitch
+        return chars, mel, ids, mel_lens, dur
     else:
-        return chars, mel, ids, x_lens, mel_lens
+        return chars, mel, ids, mel_lens
 
 
 class BinnedLengthSampler(Sampler):
