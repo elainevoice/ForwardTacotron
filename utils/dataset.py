@@ -136,8 +136,9 @@ def get_tts_datasets(path: Path, batch_size, r, model_type='tacotron'):
     train_set = DataLoader(train_dataset,
                            collate_fn=lambda batch: collate_tts(batch, r),
                            batch_size=batch_size,
-                           sampler=train_sampler,
+                           sampler=None,
                            num_workers=0,
+                           shuffle=True,
                            pin_memory=True)
 
     val_set = DataLoader(val_dataset,
@@ -204,7 +205,8 @@ class ForwardDataset(Dataset):
         pitch = np.load(str(self.path/'phon_pitch'/f'{item_id}.npy'))
 
         dur_cum = np.cumsum(dur).astype(np.int)
-        w = np.where(np.array(x) == whitespace_index)[0]
+        w = np.where(np.array(x) == whitespace_index)[0].tolist()
+        w = [0] + w + [len(dur)-1]
         if len(w) > 3:
             inds = np.random.choice(w, size=2, replace=False)
             l, r = np.min(inds), np.max(inds)
@@ -230,6 +232,11 @@ def pad2d(x, max_len):
 
 
 def collate_tts(batch, r):
+    batch.sort(key=lambda x: len(x[0]))
+    batch = batch[:]
+    bs = len(batch)
+    start = random.randint(0, bs-8)
+    batch = batch[start:start+8]
     x_lens = [len(x[0]) for x in batch]
     max_x_len = max(x_lens)
     chars = [pad1d(x[0], max_x_len) for x in batch]
