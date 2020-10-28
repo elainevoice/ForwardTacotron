@@ -19,7 +19,7 @@ if __name__ == '__main__':
         dur = np.load(paths.alg / f'{item_id}.npy', allow_pickle=False)
         mel = np.load(paths.mel / f'{item_id}.npy', allow_pickle=False)
         pitch = np.load(paths.phon_pitch / f'{item_id}.npy', allow_pickle=False)
-        dur_cum = np.cumsum(dur).astype(np.int)
+        dur_cum = np.cumsum(np.pad(dur, (1, 0)))
         text = text_dict[item_id]
         x = text_to_sequence(text)
         w = np.where(np.array(x) == whitespace_index)[0].tolist()
