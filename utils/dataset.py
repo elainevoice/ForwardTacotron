@@ -138,7 +138,8 @@ def get_tts_datasets(path: Path, batch_size, r, model_type='tacotron'):
                            batch_size=batch_size,
                            sampler=train_sampler,
                            num_workers=0,
-                           pin_memory=True)
+                           pin_memory=True,
+                           drop_last=True)
 
     val_set = DataLoader(val_dataset,
                          collate_fn=lambda batch: collate_tts(batch, r),
