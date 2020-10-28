@@ -23,7 +23,7 @@ if __name__ == '__main__':
         text = text_dict[item_id]
         x = text_to_sequence(text)
         w = np.where(np.array(x) == whitespace_index)[0].tolist()
-        w = [0] + w + [len(dur)-1]
+        w = w + [len(dur)-1]
         if len(w) > 3:
             for i in range(3):
                 inds = np.random.choice(w, size=2, replace=False)
