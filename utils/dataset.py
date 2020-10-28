@@ -113,7 +113,7 @@ def get_tts_datasets(path: Path, batch_size, r, model_type='tacotron'):
     val_data = filter_max_len(val_data)
     train_len_original = len(train_data)
 
-    if model_type == 'forward':
+    if model_type == 'forward' and hp.forward_filter_attention:
         attention_score_dict = unpickle_binary(path/'att_score_dict.pkl')
         train_data = filter_bad_attentions(train_data, attention_score_dict)
         val_data = filter_bad_attentions(val_data, attention_score_dict)
@@ -179,7 +179,7 @@ class TacoDataset(Dataset):
         item_id = self.metadata[index]
         text = self.text_dict[item_id]
         x = text_to_sequence(text)
-        mel = np.load(self.path/'mel'/f'{item_id}.npy')
+        mel = np.load(str(self.path/'mel'/f'{item_id}.npy'))
         mel_len = mel.shape[-1]
         return x, mel, item_id, mel_len
 
@@ -198,10 +198,11 @@ class ForwardDataset(Dataset):
         item_id = self.metadata[index]
         text = self.text_dict[item_id]
         x = text_to_sequence(text)
-        mel = np.load(self.path/'mel'/f'{item_id}.npy')
+        mel = np.load(str(self.path/'mel'/f'{item_id}.npy'))
         mel_len = mel.shape[-1]
-        dur = np.load(self.path/'alg'/f'{item_id}.npy')
-        return x, mel, item_id, mel_len, dur
+        dur = np.load(str(self.path/'alg'/f'{item_id}.npy'))
+        pitch = np.load(str(self.path/'phon_pitch'/f'{item_id}.npy'))
+        return x, mel, item_id, mel_len, dur, pitch
 
     def __len__(self):
         return len(self.metadata)
@@ -228,6 +229,7 @@ def collate_tts(batch, r):
     mel = np.stack(mel)
     ids = [x[2] for x in batch]
     mel_lens = [x[3] for x in batch]
+    x_lens = torch.tensor(x_lens)
     mel_lens = torch.tensor(mel_lens)
     chars = torch.tensor(chars).long()
     mel = torch.tensor(mel)
@@ -236,9 +238,12 @@ def collate_tts(batch, r):
         dur = [pad1d(x[4][:max_x_len], max_x_len) for x in batch]
         dur = np.stack(dur)
         dur = torch.tensor(dur).float()
-        return chars, mel, ids, mel_lens, dur
+        pitch = [pad1d(x[5][:max_x_len], max_x_len) for x in batch]
+        pitch = np.stack(pitch)
+        pitch = torch.tensor(pitch).float()
+        return chars, mel, ids, x_lens, mel_lens, dur, pitch
     else:
-        return chars, mel, ids, mel_lens
+        return chars, mel, ids, x_lens, mel_lens
 
 
 class BinnedLengthSampler(Sampler):
