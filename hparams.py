@@ -142,7 +142,7 @@ forward_dropout = 0.1
 
 # Training
 
-forward_schedule = [(1e-4, 10_000,  8),    # progressive training schedule
+forward_schedule = [(1e-4, 10_000,  64),    # progressive training schedule
                     (1e-4, 300_000,  64),   # (lr, step, batch_size)
                     (2e-5, 600_000,  64)]   # (lr, step, batch_size)
 
@@ -151,7 +151,7 @@ forward_clip_grad_norm = 1.0            # clips the gradient norm to prevent exp
 forward_checkpoint_every = 10_000        # checkpoints the model every X steps
 forward_plot_every = 1000
 
-forward_filter_attention = True               # whether to filter data with bad attention scores
+forward_filter_attention = False               # whether to filter data with bad attention scores
 forward_min_attention_sharpness = 0.5         # filter data with bad attention sharpness score, if 0 then no filter
 forward_min_attention_alignment = 0.95        # filter data with bad attention alignment score, if 0 then no filter
 

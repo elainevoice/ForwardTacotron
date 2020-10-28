@@ -43,4 +43,4 @@ if __name__ == '__main__':
                 print(f'{index} / {len(dataset)} {item_id_new} {l} {r} {text[l:r]}')
 
     pickle_binary(dataset_new, paths.data / 'train_dataset.pkl')
-    pickle_binary(tex_dict, paths.data / 'text_dict.pkl')
+    pickle_binary(text_dict_new, paths.data / 'text_dict.pkl')
