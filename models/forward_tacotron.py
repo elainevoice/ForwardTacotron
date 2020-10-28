@@ -163,6 +163,8 @@ class ForwardTacotron(nn.Module):
 
         x = self.embedding(x)
         dur_hat = self.dur_pred(x).squeeze()
+        if len(dur_hat.shape) > 2:
+            dur_hat = dur_hat.squeeze(2)
         pitch_hat = self.pitch_pred(x).transpose(1, 2)
         pitch = pitch.unsqueeze(1)
 
