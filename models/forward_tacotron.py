@@ -1,4 +1,6 @@
 from pathlib import Path
+from random import random
+
 from typing import Union
 
 import numpy as np
@@ -164,6 +166,14 @@ class ForwardTacotron(nn.Module):
         x = self.embedding(x)
         dur = torch.clamp(torch.exp(dur) - 1, min=0.)
         dur_hat = self.dur_pred(x).squeeze()
+
+        device = next(self.parameters()).device  # use same device as parameters
+
+        rand = torch.randint(-1, 2, dur.shape, device=device)
+        dur_len_1 = dur[:, ::2].size(1)
+        dur_len_2 = dur[:, 1::2].size(1)
+        dur[:, ::2] = dur[:, ::2] + rand[:, :dur_len_1]
+        dur[:, 1::2] = dur[:, 1::2] - rand[:, :dur_len_2]
 
         pitch_hat = self.pitch_pred(x).transpose(1, 2)
         pitch = pitch.unsqueeze(1)
