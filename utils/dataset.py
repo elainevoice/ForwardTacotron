@@ -213,7 +213,7 @@ class ForwardDataset(Dataset):
             dur = dur[l:r]
             pitch = pitch[l:r]
             mel = mel[:, ml:mr]
-            mel_len = mr-mr
+            mel_len = mr-ml
 
         return x, mel, item_id, mel_len, dur, pitch
 
