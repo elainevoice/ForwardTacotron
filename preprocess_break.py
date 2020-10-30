@@ -5,7 +5,7 @@ from utils import hparams as hp
 from utils.dataset import filter_max_len
 from utils.files import unpickle_binary, pickle_binary
 from utils.paths import Paths
-from utils.text import whitespace_index, text_to_sequence, clean_text
+from utils.text import comma_index, doubledot_index, text_to_sequence, clean_text
 
 if __name__ == '__main__':
     hp.configure('hparams.py')  # Load hparams from file
@@ -22,25 +22,27 @@ if __name__ == '__main__':
         dur_cum = np.cumsum(np.pad(dur, (1, 0)))
         text = text_dict[item_id]
         x = text_to_sequence(text)
-        w = np.where(np.array(x) == whitespace_index)[0].tolist()
-        w = w + [len(dur)-1]
-        if len(w) > 3:
-            for i in range(3):
-                inds = np.random.choice(w, size=2, replace=False)
-                l, r = np.min(inds)+1, np.max(inds)
-                ml, mr = dur_cum[l], dur_cum[r]
-                x = x[l:r]
-                dur = dur[l:r]
-                pitch = pitch[l:r]
-                mel = mel[:, ml:mr]
-                mel_len = mr-ml
-                item_id_new = item_id + f'_{i}'
-                np.save(paths.alg / f'{item_id_new}.npy', dur, allow_pickle=False)
-                np.save(paths.mel / f'{item_id_new}.npy', mel, allow_pickle=False)
-                np.save(paths.phon_pitch / f'{item_id_new}.npy', pitch, allow_pickle=False)
-                dataset_new.append((item_id_new, mel_len))
-                text_dict_new[item_id_new] = text[l:r]
-                print(f'{index} / {len(dataset)} {item_id_new} {l} {r} {text[l:r]}')
+
+        w_comma = np.where(np.array(x) == comma_index)[0].tolist()
+        w_dd = np.where(np.array(x) == doubledot_index)[0].tolist()
+        indices = []
+        for w in w_comma + w_dd:
+            indices.append((0, w))
+            indices.append((w+2, len(dur)-1))
+        for i, (l, r) in enumerate(indices):
+            ml, mr = dur_cum[l], dur_cum[r]
+            x = x[l:r]
+            dur = dur[l:r]
+            pitch = pitch[l:r]
+            mel = mel[:, ml:mr]
+            mel_len = mr-ml
+            item_id_new = item_id + f'_{i}'
+            np.save(paths.alg / f'{item_id_new}.npy', dur, allow_pickle=False)
+            np.save(paths.mel / f'{item_id_new}.npy', mel, allow_pickle=False)
+            np.save(paths.phon_pitch / f'{item_id_new}.npy', pitch, allow_pickle=False)
+            dataset_new.append((item_id_new, mel_len))
+            text_dict_new[item_id_new] = text[l:r]
+            print(f'{index} / {len(dataset)} {item_id_new} {l} {r} {text[l:r]}')
 
     pickle_binary(dataset_new, paths.data / 'train_dataset.pkl')
     pickle_binary(text_dict_new, paths.data / 'text_dict.pkl')
