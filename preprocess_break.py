@@ -28,7 +28,8 @@ if __name__ == '__main__':
         indices = []
         for w in w_comma + w_dd:
             indices.append((0, w))
-            indices.append((w+2, len(dur)-1))
+            if w + 2 < len(dur) - 10:
+                indices.append((w+2, len(dur)-1))
         for i, (l, r) in enumerate(indices):
             ml, mr = dur_cum[l], dur_cum[r]
             x = x[l:r]
